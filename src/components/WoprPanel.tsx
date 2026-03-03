@@ -111,6 +111,7 @@ export const WoprPanel: React.FC<Props> = ({ options, width, height, replaceVari
   const rafRef       = useRef<number>(0);
   const lastTickRef  = useRef<number>(0);
   const startTimeRef = useRef<number>(-1);
+  const loopRef      = useRef<(timestamp: number) => void>(() => {});
 
   // When DEFCON changes, flush all agent timers so the new
   // probability distribution takes effect on the very next tick.
@@ -141,15 +142,19 @@ export const WoprPanel: React.FC<Props> = ({ options, width, height, replaceVari
         }
       }
 
-      rafRef.current = requestAnimationFrame(loop);
+      rafRef.current = requestAnimationFrame((ts) => loopRef.current(ts));
     },
     [width, height, options.tickIntervalMs, defcon]
   );
 
   useEffect(() => {
+    loopRef.current = loop;
+  }, [loop]);
+
+  useEffect(() => {
     startTimeRef.current = -1;
     lastTickRef.current  = 0;
-    rafRef.current = requestAnimationFrame(loop);
+    rafRef.current = requestAnimationFrame((ts) => loopRef.current(ts));
     return () => cancelAnimationFrame(rafRef.current);
   }, [loop]);
 
