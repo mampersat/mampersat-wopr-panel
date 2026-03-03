@@ -1,5 +1,7 @@
 # WOPR Panel — Grafana Plugin
 
+<img src="https://netninja.com/wp-content/uploads/2012/07/grab1.png" alt="W.O.P.R. image">
+
 A homage to the [WOPR](https://en.wikipedia.org/wiki/WarGames#The_WOPR) (War Operation Plan Response) computer from the 1983 film [WarGames](https://en.wikipedia.org/wiki/WarGames).
 
 In the film, WOPR is a military supercomputer tasked with continuously running simulations of thermonuclear war in order to predict outcomes and refine strategy. It never stops. It never sleeps. It is always asking: *"Shall we play a game?"*
