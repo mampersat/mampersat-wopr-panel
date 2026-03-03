@@ -26,9 +26,9 @@ const PALETTE: ReadonlyArray<readonly [number, number, number]> = [
 // Values are ratios, not percentages — they just need to be in proportion
 // to each other. e.g. black:4, red:1 means black is 4× more likely than red.
 const DEFCON_LEVELS: Readonly<Record<number, { green: number; black: number; yellow: number; red: number }>> = {
-  5: { green: 145, black: 150, yellow:  14, red:  1 },
-  4: { green: 44, black: 40, yellow: 13, red:  1 },
-  3: { green: 39, black: 30, yellow: 23, red:  8 },
+  5: { green: 1145, black: 1150, yellow:  50, red:  2},
+  4: { green: 1114, black: 1140, yellow: 100, red:  6 },
+  3: { green: 39, black: 30, yellow: 23, red:  2 },
   2: { green: 25, black: 40, yellow: 21, red: 14 },
   1: { green:  5, black: 77, yellow: 10, red: 11 },
 };
