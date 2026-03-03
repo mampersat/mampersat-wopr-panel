@@ -1,16 +1,45 @@
-# Grafana panel plugin template
+# WOPR Panel — Grafana Plugin
 
-This template is a starting point for building a panel plugin for Grafana.
+A homage to the [WOPR](https://en.wikipedia.org/wiki/WarGames#The_WOPR) (War Operation Plan Response) computer from the 1983 film [WarGames](https://en.wikipedia.org/wiki/WarGames).
 
-## What are Grafana panel plugins?
+In the film, WOPR is a military supercomputer tasked with continuously running simulations of thermonuclear war in order to predict outcomes and refine strategy. It never stops. It never sleeps. It is always asking: *"Shall we play a game?"*
 
-Panel plugins allow you to add new types of visualizations to your dashboard, such as maps, clocks, pie charts, lists, and more.
+This panel renders an 80×24 grid of LEDs — one per simulation — each reporting the outcome of the latest run. The current [DEFCON](https://en.wikipedia.org/wiki/DEFCON) level controls the probability distribution of outcomes across the grid.
 
-Use panel plugins when you want to do things like visualize data returned by data source queries, navigate between dashboards, or control external systems (such as smart home devices).
+## What each colour means
 
-## Getting started
+| Colour | Meaning |
+|--------|---------|
+| **Green** | Simulation completed — outcome within modelled norms |
+| **Yellow** | Simulation completed — significant casualties, conventional or limited exchange |
+| **Red** | Simulation completed — nuclear weapons used, mass casualties |
+| **Black** | Simulation did not finish — program ran out of time, resources, or hope |
 
-### Frontend
+## Options
+
+| Option | Description |
+|--------|-------------|
+| **DEFCON** | Threat level 5 (peacetime) → 1 (maximum). Controls the probability mix of outcomes. Accepts a dashboard variable e.g. `$defcon`. |
+| **Tick interval (ms)** | How often the grid updates. Default 100ms. |
+
+## DEFCON outcome probabilities
+
+| Level | Green | Black | Yellow | Red |
+|-------|-------|-------|--------|-----|
+| 5     | 45%   | 50%   | 4%     | 1%  |
+| 4     | 44%   | 40%   | 13%    | 3%  |
+| 3     | 39%   | 30%   | 23%    | 8%  |
+| 2     | 25%   | 40%   | 21%    | 14% |
+| 1     | 2%    | 77%   | 10%    | 11% |
+
+> At DEFCON 1, most simulations don't finish. A handful still come out green —
+> because even at the edge of annihilation, some futures survive.
+
+---
+
+## Development
+
+### Getting started
 
 1. Install dependencies
 
@@ -33,29 +62,21 @@ Use panel plugins when you want to do things like visualize data returned by dat
 4. Run the tests (using Jest)
 
    ```bash
-   # Runs the tests and watches for changes, requires git init first
-   npm run test
-
-   # Exits after running all the tests
-   npm run test:ci
+   npm run test        # watch mode (requires git init)
+   npm run test:ci     # single run
    ```
 
-5. Spin up a Grafana instance and run the plugin inside it (using Docker)
+5. Spin up a Grafana instance with the plugin pre-loaded (using Docker)
 
    ```bash
-   npm run server
+   docker compose up --build
+   # Grafana opens at http://localhost:3000 with the WOPR dashboard as home
    ```
 
 6. Run the E2E tests (using Playwright)
 
    ```bash
-   # Spins up a Grafana instance first that we tests against
    npm run server
-
-   # If you wish to start a certain Grafana version. If not specified will use latest by default
-   GRAFANA_VERSION=11.3.0 npm run server
-
-   # Starts the tests
    npm run e2e
    ```
 
@@ -63,55 +84,45 @@ Use panel plugins when you want to do things like visualize data returned by dat
 
    ```bash
    npm run lint
-
-   # or
-
    npm run lint:fix
    ```
 
-# Distributing your plugin
+---
 
-When distributing a Grafana plugin either within the community or privately the plugin must be signed so the Grafana application can verify its authenticity. This can be done with the `@grafana/sign-plugin` package.
+## Distributing / publishing
 
-_Note: It's not necessary to sign a plugin during development. The docker development environment that is scaffolded with `@grafana/create-plugin` caters for running the plugin without a signature._
+When distributing a Grafana plugin the plugin must be signed so Grafana can verify its authenticity.
 
-## Initial steps
+_Note: Signing is not required during development — the Docker dev environment runs unsigned plugins automatically._
 
-Before signing a plugin please read the Grafana [plugin publishing and signing criteria](https://grafana.com/legal/plugins/#plugin-publishing-and-signing-criteria) documentation carefully.
-
-`@grafana/create-plugin` has added the necessary commands and workflows to make signing and distributing a plugin via the grafana plugins catalog as straightforward as possible.
-
-Before signing a plugin for the first time please consult the Grafana [plugin signature levels](https://grafana.com/legal/plugins/#what-are-the-different-classifications-of-plugins) documentation to understand the differences between the types of signature level.
+Before signing, read the Grafana [plugin publishing and signing criteria](https://grafana.com/legal/plugins/#plugin-publishing-and-signing-criteria) and [signature levels](https://grafana.com/legal/plugins/#what-are-the-different-classifications-of-plugins) documentation.
 
 1. Create a [Grafana Cloud account](https://grafana.com/signup).
-2. Make sure that the first part of the plugin ID matches the slug of your Grafana Cloud account.
-   - _You can find the plugin ID in the `plugin.json` file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
+2. Ensure the first part of the plugin ID matches your Grafana Cloud account slug (`mampersat-`).
 3. Create a Grafana Cloud API key with the `PluginPublisher` role.
-4. Keep a record of this API key as it will be required for signing a plugin
 
-## Signing a plugin
+### Signing via GitHub Actions
 
-### Using Github actions release workflow
+The release workflow (`.github/workflows/release.yml`) handles signing automatically. Add your API key as a repository secret:
 
-If the plugin is using the github actions supplied with `@grafana/create-plugin` signing a plugin is included out of the box. The [release workflow](./.github/workflows/release.yml) can prepare everything to make submitting your plugin to Grafana as easy as possible. Before being able to sign the plugin however a secret needs adding to the Github repository.
+1. Go to **Settings → Secrets → Actions** in the repo.
+2. Click **New repository secret**.
+3. Name: `GRAFANA_API_KEY` — paste your Grafana Cloud API key.
 
-1. Please navigate to "settings > secrets > actions" within your repo to create secrets.
-2. Click "New repository secret"
-3. Name the secret "GRAFANA_API_KEY"
-4. Paste your Grafana Cloud API key in the Secret field
-5. Click "Add secret"
+### Triggering a release
 
-#### Push a version tag
+```bash
+npm version <major|minor|patch>
+git push origin main --follow-tags
+```
 
-To trigger the workflow we need to push a version tag to github. This can be achieved with the following steps:
+---
 
-1. Run `npm version <major|minor|patch>`
-2. Run `git push origin main --follow-tags`
+## References
 
-## Learn more
-
-Below you can find source code for existing app plugins and other related documentation.
-
-- [Basic panel plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/panel-basic#readme)
-- [`plugin.json` documentation](https://grafana.com/developers/plugin-tools/reference/plugin-json)
-- [How to sign a plugin?](https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin)
+- [WarGames (1983)](https://en.wikipedia.org/wiki/WarGames) — Wikipedia
+- [WOPR](https://en.wikipedia.org/wiki/WarGames#The_WOPR) — Wikipedia
+- [DEFCON](https://en.wikipedia.org/wiki/DEFCON) — Wikipedia
+- [`plugin.json` reference](https://grafana.com/developers/plugin-tools/reference/plugin-json)
+- [Grafana panel plugin examples](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/panel-basic#readme)
+- [How to sign a plugin](https://grafana.com/developers/plugin-tools/publish-a-plugin/sign-a-plugin)
