@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "panel",
-  "name": "Wopr-Panel",
-  "id": "msheppard-wopr-panel",
+  "name": "Wopr Panel",
+  "id": "mampersat-wopr-panel",
   "info": {
     "keywords": ["panel"],
     "description": "",
     "author": {
-      "name": "Msheppard"
+      "name": "mampersat"
     },
     "logos": {
       "small": "img/logo.svg",
