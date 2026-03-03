@@ -22,31 +22,25 @@ const PALETTE: ReadonlyArray<readonly [number, number, number]> = [
   [200, 0,   0],   // red
 ];
 
-// Cumulative probability thresholds per DEFCON level.
-// Order matches state constants: green, black, yellow, red.
-//
-// DEFCON 5: almost always green, occasional yellow, rare red, negligible black
-// DEFCON 4: mostly green, ~2× yellow, several reds, small black
-// DEFCON 3: still mostly green+yellow, more reds, more blacks
-// DEFCON 2: at least half green, yellows + reds + heavy blacks
-// DEFCON 1: minority green, heavy reds + blacks
-const DEFCON_THRESHOLDS: Readonly<Record<number, readonly [number, number, number, number]>> = {
-  5: [45, 95, 99, 100], // green 45%, black 50%, yellow  4%, red  1%
-  4: [44, 84, 97, 100], // green 44%, black 40%, yellow 13%, red  3%
-  3: [39, 69, 92, 100], // green 39%, black 30%, yellow 23%, red  8%
-  2: [25, 65, 86, 100], // green 25%, black 40%, yellow 21%, red 14%
-  1: [ 2, 79, 89, 100], // green  2%, black 77%, yellow 10%, red 11%
+// Relative weights per DEFCON level — edit these to tune the display.
+// Values are ratios, not percentages — they just need to be in proportion
+// to each other. e.g. black:4, red:1 means black is 4× more likely than red.
+const DEFCON_LEVELS: Readonly<Record<number, { green: number; black: number; yellow: number; red: number }>> = {
+  5: { green: 145, black: 150, yellow:  14, red:  1 },
+  4: { green: 44, black: 40, yellow: 13, red:  1 },
+  3: { green: 39, black: 30, yellow: 23, red:  8 },
+  2: { green: 25, black: 40, yellow: 21, red: 14 },
+  1: { green:  5, black: 77, yellow: 10, red: 11 },
 };
 
 function pickState(defcon: number): number {
-  const thresholds = DEFCON_THRESHOLDS[defcon] ?? DEFCON_THRESHOLDS[5];
-  const r = Math.random() * 100;
-  for (let i = 0; i < thresholds.length; i++) {
-    if (r < thresholds[i]) {
-      return i;
-    }
-  }
-  return STATE_GREEN;
+  const w = DEFCON_LEVELS[defcon] ?? DEFCON_LEVELS[5];
+  const total = w.green + w.black + w.yellow + w.red;
+  const r = Math.random() * total;
+  if (r < w.green)                        { return STATE_GREEN;  }
+  if (r < w.green + w.black)              { return STATE_BLACK;  }
+  if (r < w.green + w.black + w.yellow)   { return STATE_YELLOW; }
+  return STATE_RED;
 }
 
 // How long (seconds) before an agent next changes state
@@ -117,6 +111,12 @@ export const WoprPanel: React.FC<Props> = ({ options, width, height, replaceVari
   const rafRef       = useRef<number>(0);
   const lastTickRef  = useRef<number>(0);
   const startTimeRef = useRef<number>(-1);
+
+  // When DEFCON changes, flush all agent timers so the new
+  // probability distribution takes effect on the very next tick.
+  useEffect(() => {
+    agentsRef.current.nextChange.fill(0);
+  }, [defcon]);
 
   const loop = useCallback(
     (timestamp: number) => {

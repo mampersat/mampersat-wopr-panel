@@ -6,13 +6,13 @@
   "links": [],
   "panels": [
     {
-      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
         "tickIntervalMs": 100,
-        "defcon": "5"
+        "defcon": "$defcon"
       },
-      "title": "WOPR",
+      "title": "W.O.P.R.",
       "type": "mampersat-wopr-panel",
       "datasource": null,
       "targets": []
@@ -21,12 +21,33 @@
   "refresh": "",
   "schemaVersion": 39,
   "tags": [],
-  "templating": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "name": "defcon",
+        "label": "DEFCON",
+        "type": "custom",
+        "query": "5,4,3,2,1",
+        "current": { "selected": true, "text": "5", "value": "5" },
+        "options": [
+          { "selected": true,  "text": "5", "value": "5" },
+          { "selected": false, "text": "4", "value": "4" },
+          { "selected": false, "text": "3", "value": "3" },
+          { "selected": false, "text": "2", "value": "2" },
+          { "selected": false, "text": "1", "value": "1" }
+        ],
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "skipUrlSync": false
+      }
+    ]
+  },
   "time": { "from": "now-6h", "to": "now" },
-  "timepicker": {},
+  "timepicker": { "hidden": true },
   "timezone": "",
-  "title": "WOPR",
+  "title": "W.O.P.R. - DEFCON ${defcon}",
   "uid": "a538aeff-5a8a-42a5-901c-938d896fdd6f",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
