@@ -2,7 +2,7 @@
 
 <img src="https://netninja.com/wp-content/uploads/2012/07/grab1.png" alt="W.O.P.R. image">
 <br>
-<img src="img/animation.gif" alt="plugin animation">
+<img src="https://github.com/mampersat/mampersat-wopr-panel/blob/main/img/animation.gif?raw=true" alt="plugin animation">
 
 A homage to the [WOPR](https://en.wikipedia.org/wiki/WarGames#The_WOPR) (War Operation Plan Response) computer from the 1983 film [WarGames](https://en.wikipedia.org/wiki/WarGames).
 
