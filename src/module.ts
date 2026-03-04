@@ -26,5 +26,28 @@ export const plugin = new PanelPlugin<WoprOptions>(WoprPanel).setPanelOptions((b
         ],
         allowCustomValue: true,
       },
+    })
+    .addNumberInput({
+      path: 'cols',
+      name: 'Columns',
+      defaultValue: 80,
+      settings: { min: 1, max: 240, step: 1 },
+    })
+    .addNumberInput({
+      path: 'rows',
+      name: 'Rows',
+      defaultValue: 24,
+      settings: { min: 1, max: 80, step: 1 },
+    })
+    .addRadio({
+      path: 'shape',
+      name: 'Cell shape',
+      defaultValue: 'circle',
+      settings: {
+        options: [
+          { value: 'circle',    label: 'Circle' },
+          { value: 'rectangle', label: 'Rectangle' },
+        ],
+      },
     });
 });

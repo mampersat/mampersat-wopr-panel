@@ -2,9 +2,8 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import { PanelProps } from '@grafana/data';
 import { WoprOptions } from '../types';
 
-const COLS = 80;
-const ROWS = 24;
-const N    = COLS * ROWS; // 1920 agents
+const DEFAULT_COLS = 80;
+const DEFAULT_ROWS = 24;
 
 // ---------------------------------------------------------------------------
 // Agent states
@@ -48,10 +47,11 @@ function pickDuration(): number {
   return 1 + Math.random() * 9; // 1 – 10 s
 }
 
-function initAgents(defcon: number): { states: Uint8Array; nextChange: Float64Array } {
-  const states     = new Uint8Array(N);
-  const nextChange = new Float64Array(N);
-  for (let i = 0; i < N; i++) {
+function initAgents(defcon: number, cols: number, rows: number): { states: Uint8Array; nextChange: Float64Array } {
+  const n          = cols * rows;
+  const states     = new Uint8Array(n);
+  const nextChange = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
     states[i]     = pickState(defcon);
     nextChange[i] = Math.random() * 10; // stagger initial flips across 0 – 10 s
   }
@@ -62,7 +62,7 @@ function initAgents(defcon: number): { states: Uint8Array; nextChange: Float64Ar
 // Tick: advance any agents whose timer has expired
 // ---------------------------------------------------------------------------
 function tickAgents(states: Uint8Array, nextChange: Float64Array, t: number, defcon: number): void {
-  for (let i = 0; i < N; i++) {
+  for (let i = 0; i < states.length; i++) {
     if (t >= nextChange[i]) {
       states[i]     = pickState(defcon);
       nextChange[i] = t + pickDuration();
@@ -77,23 +77,37 @@ function renderGrid(
   ctx: CanvasRenderingContext2D,
   states: Uint8Array,
   width: number,
-  height: number
+  height: number,
+  shape: 'circle' | 'rectangle',
+  cols: number,
+  rows: number,
 ): void {
-  const pixelW = width / COLS;
-  const pixelH = height / ROWS;
-  const gap    = 1;
+  const pixelW = width / cols;
+  const pixelH = height / rows;
 
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, width, height);
 
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
-      const color = PALETTE[states[row * COLS + col]];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const color = PALETTE[states[row * cols + col]];
       if (color[0] === 0 && color[1] === 0 && color[2] === 0) {
-        continue; // black — leave background showing
+        continue;
       }
       ctx.fillStyle = `rgb(${color[0]},${color[1]},${color[2]})`;
-      ctx.fillRect(col * pixelW, row * pixelH, pixelW - gap, pixelH - gap);
+      if (shape === 'circle') {
+        ctx.beginPath();
+        ctx.arc(
+          col * pixelW + pixelW / 2,
+          row * pixelH + pixelH / 2,
+          Math.min(pixelW, pixelH) / 2 - 0.5,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+      } else {
+        ctx.fillRect(col * pixelW, row * pixelH, pixelW - 1, pixelH - 1);
+      }
     }
   }
 }
@@ -105,13 +119,20 @@ interface Props extends PanelProps<WoprOptions> {}
 
 export const WoprPanel: React.FC<Props> = ({ options, width, height, replaceVariables }) => {
   const defcon = Math.min(5, Math.max(1, parseInt(replaceVariables(options.defcon), 10))) || 5;
+  const cols   = options.cols || DEFAULT_COLS;
+  const rows   = options.rows || DEFAULT_ROWS;
 
   const canvasRef    = useRef<HTMLCanvasElement>(null);
-  const agentsRef    = useRef(initAgents(defcon));
+  const agentsRef    = useRef(initAgents(defcon, cols, rows));
   const rafRef       = useRef<number>(0);
   const lastTickRef  = useRef<number>(0);
   const startTimeRef = useRef<number>(-1);
   const loopRef      = useRef<(timestamp: number) => void>(() => {});
+
+  // Re-init agents when grid dimensions change
+  useEffect(() => {
+    agentsRef.current = initAgents(defcon, cols, rows);
+  }, [cols, rows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // When DEFCON changes, flush all agent timers so the new
   // probability distribution takes effect on the very next tick.
@@ -137,14 +158,14 @@ export const WoprPanel: React.FC<Props> = ({ options, width, height, replaceVari
         if (canvas) {
           const ctx = canvas.getContext('2d');
           if (ctx) {
-            renderGrid(ctx, states, width, height);
+            renderGrid(ctx, states, width, height, options.shape, cols, rows);
           }
         }
       }
 
       rafRef.current = requestAnimationFrame((ts) => loopRef.current(ts));
     },
-    [width, height, options.tickIntervalMs, defcon]
+    [width, height, options.tickIntervalMs, defcon, options.shape, cols, rows]
   );
 
   useEffect(() => {
