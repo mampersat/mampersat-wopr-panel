@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint --cache .",
     "lint:fix": "npm run lint -- --fix && prettier --write --list-different .",
-    "e2e": "playwright test",
+    "e2e": "npm run build && playwright test",
     "server": "docker compose up --build",
     "sign": "npx --yes @grafana/sign-plugin@latest"
   },
@@ -75,5 +75,8 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },
-  "packageManager": "npm@10.5.1"
+  "packageManager": "npm@10.5.1",
+  "overrides": {
+    "uuid": "^9.0.1"
+  }
 }
