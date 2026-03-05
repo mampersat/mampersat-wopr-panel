@@ -7,7 +7,7 @@ services:
       context: .
       args:
         grafana_image: ${GRAFANA_IMAGE:-grafana-enterprise}
-        grafana_version: ${GRAFANA_VERSION:-9.0.0} # was 12.3.2
+        grafana_version: ${GRAFANA_VERSION:-12.3.2} # test back to 9.0.0 to see if it works
         development: ${DEVELOPMENT:-false}
         anonymous_auth_enabled: ${ANONYMOUS_AUTH_ENABLED:-true}
     restart: unless-stopped
